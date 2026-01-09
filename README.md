@@ -88,7 +88,7 @@ http://127.0.0.1:8000/consult/27355199
 ```json
 {
   "type_identity": "CC",
-  "identity": "27355199",
+  "identity": "17355112",
   "names": "MARIA ELENA",
   "last_names": "PEREZ LOPEZ",
   "birthday": "**/**/**",
