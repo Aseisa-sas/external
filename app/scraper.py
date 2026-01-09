@@ -2,11 +2,6 @@ import sys
 import types
 import time
 from packaging.version import Version
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import Select
-import undetected_chromedriver as uc
 
 if sys.version_info >= (3, 12):
     class LooseVersion(Version):
@@ -22,6 +17,12 @@ if sys.version_info >= (3, 12):
     distutils.version.LooseVersion = LooseVersion
     sys.modules["distutils"] = distutils
     sys.modules["distutils.version"] = distutils.version
+
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import Select
+import undetected_chromedriver as uc
 
 class AdresScraper:
     """
@@ -168,10 +169,22 @@ class AdresScraper:
                     driver.switch_to.window(handle)
                     break
 
-            wait.until(EC.presence_of_element_located((By.TAG_NAME, "table")))
+            try:
+                # Wait up to 10 seconds for body to load to ensure text is present
+                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
 
-            # Extract data using the new logic
-            result_data = self._extract_table_data(driver)
+                not_found_elements = driver.find_elements(By.XPATH, "//*[contains(text(), 'no se encuentra en BDUA')]")
+
+                if len(not_found_elements) > 0:
+                    result_data = {"found": False}
+                else:
+                    # Case: User exists, wait for table
+                    wait.until(EC.presence_of_element_located((By.TAG_NAME, "table")))
+                    result_data = self._extract_table_data(driver)
+                    result_data["found"] = True
+
+            except Exception as e:
+                print(f"Error extracting popup data: {e}")
 
         except Exception as e:
             print(f"Error: {e}")

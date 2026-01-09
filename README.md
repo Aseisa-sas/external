@@ -20,8 +20,8 @@ Follow these steps to set up the project locally.
 If you haven't already, create a folder for the project and enter it:
 
 ```bash
-git clone git@github.com:keliumJU/adres_api.git
-cd adres_api
+git clone git@github.com:Aseisa-sas/external.git
+cd external
 ```
 
 ### 2. Set up the Virtual Environment (venv)

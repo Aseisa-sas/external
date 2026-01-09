@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, status
+from fastapi.responses import JSONResponse
 from app.scraper import AdresScraper
 from app.models import AdresResponse
 
@@ -10,16 +11,10 @@ app = FastAPI(
 
 scraper = AdresScraper()
 
-@app.get("/consult/{identity}", response_model=AdresResponse)
+@app.get("/consult/{identity}")
 def consult_identity(identity: str):
     """
     Endpoint to query ADRES by identity number.
-
-    Args:
-        identity (str): The citizenship card number (CC).
-
-    Returns:
-        AdresResponse: JSON object with specific affiliate details.
     """
     if not identity.isdigit():
         raise HTTPException(
@@ -31,13 +26,24 @@ def consult_identity(identity: str):
 
     if not data:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No records found or timeout waiting for external service."
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="External service timeout or internal error."
         )
+
+    if data.get("found") is False:
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "message": "The patient is not registered at ADRES",
+                "code": "1"
+            }
+        )
+
+    if "found" in data:
+        del data["found"]
 
     return data
 
 @app.get("/")
 def health_check():
-    """Simple health check endpoint."""
     return {"status": "ok", "service": "ADRES API"}
