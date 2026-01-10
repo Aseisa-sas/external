@@ -53,6 +53,7 @@ class AdresScraper:
     def _get_driver_options(self):
         """Configure Chrome options."""
         options = uc.ChromeOptions()
+        options.page_load_strategy = 'eager'
         options.add_argument("--disable-popup-blocking")
         options.add_argument("--mute-audio")
         options.add_argument("--no-sandbox")
@@ -134,6 +135,7 @@ class AdresScraper:
     def get_adres_info(self, document_number: str) -> dict:
         """Main execution method."""
         driver = uc.Chrome(options=self._get_driver_options(), version_main=142)
+        driver.set_page_load_timeout(60)
         result_data = {}
 
         try:
@@ -189,9 +191,20 @@ class AdresScraper:
         except Exception as e:
             print(f"Error: {e}")
         finally:
-            try:
-                driver.quit()
-            except:
-                pass
+            if 'driver' in locals():
+                try:
+                    driver.close()
+                except Exception:
+                    pass
+
+                try:
+                    driver.quit()
+                except Exception:
+                    pass
+
+                try:
+                    del driver
+                except Exception:
+                    pass
 
         return result_data
